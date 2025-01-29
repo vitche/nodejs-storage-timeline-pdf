@@ -1,0 +1,14 @@
+{
+  "name": "nodejs-storage-timeline-pdf",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "author": "Vitche Research Team Developer <developer@vitche.com>",
+  "license": "LGPL-3.0-or-later",
+  "description": "The Storage.Timeline PDF formatter.",
+  "dependencies": {
+    "nodejs-storage-timeline": "github:vitche/nodejs-storage-timeline"
+  }
+}
