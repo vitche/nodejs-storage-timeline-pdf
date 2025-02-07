@@ -7,12 +7,14 @@ const timeLineName = "fallout";
 const storage = new StorageTimeline.Storage(storagePath);
 const schema = storage.get(schemaName);
 const timeLine = schema.get(timeLineName);
-timeLine.nextString((error, event) => {
-    if (!error) {
 
-        const time = event.time;
-        const value = event.value;
+function processNextString() {
+    timeLine.nextString((error, event) => {
+        if (!error && event) {
+            console.log(event.time, event.value);
+            processNextString(); // Recursively call for the next event
+        }
+    });
+}
 
-        console.log(time, value);
-    }
-});
+processNextString();
