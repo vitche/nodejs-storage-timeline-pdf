@@ -95,28 +95,32 @@ Below is a brief outline of how to use the main features of this library:
 
 Collects all events from a given timeline and returns a chainable object with several methods:
 
-• .toMarkDown([formatter])  
+#### .toMarkDown([formatter])  
   – Transforms events into a Markdown string.  
   – Optionally pass a custom formatter of the form (events, timelineName) => string.  
-• .toHTML([formatter])  
+#### .toHTML([formatter])  
   – Transforms events into HTML.  
   – Optionally pass a custom formatter.  
-• .toPDF()  
+#### .toPDF()  
   – Converts the most recent output (either HTML or Markdown) into a PDF buffer. If called without prior .toMarkDown() or .toHTML(), it defaults to HTML.  
-• .toBuffer()  
+#### .toBuffer()  
   – Returns a Promise. The final data can be an Array of raw events, a Markdown string, HTML, or a PDF buffer, depending on previous transformations.
 
 ### buildJSONMarkdownFormatter(fields)
 
 Returns a Markdown formatter function that will parse each event’s `.value` as JSON, extracting only the specified fields:
 
+```javascript
 const myFormatter = buildJSONMarkdownFormatter(["title", "description"]);
+```
 
 ### buildJSONHTMLFormatter(fields)
 
 Returns an HTML formatter function that will parse each event’s `.value` as JSON, extracting only the specified fields, presented as a bullet list:
 
+```javascript
 const myHTMLFormatter = buildJSONHTMLFormatter(["title", "description"]);
+```
 
 --------------------------------------------------------------------------------
 
@@ -124,42 +128,50 @@ const myHTMLFormatter = buildJSONHTMLFormatter(["title", "description"]);
 
 A few example scripts are included in the `tests/` directory:
 
-• tests/populate.js  
+### tests/populate.js  
   – Demonstrates how to populate a timeline with events from a JSON file.  
-• tests/render-markdown.js  
+### tests/render-markdown.js  
   – Collects events and renders them as Markdown to the console.  
-• tests/render-buffer.js  
+### tests/render-buffer.js  
   – Creates a PDF buffer in memory (logged by file size).  
-• tests/render-file.js  
+### tests/render-file.js  
   – Saves a PDF to disk, using a custom HTML formatter for JSON-based events.
 
 To run these examples:
 
 1. Ensure you have the timeline and schema set up by running the populate script:
-   node tests/populate.js
+    ```shell
+    node tests/populate.js
+    ```
 
 2. Preview the events in Markdown:
-   node tests/render-markdown.js
+    ```shell
+    node tests/render-markdown.js
+    ```
 
 3. Generate a PDF buffer in memory:
-   node tests/render-buffer.js
+    ```shell
+    node tests/render-buffer.js
+    ```
 
 4. Save a PDF to disk:
-   node tests/render-file.js
+    ```shell
+    node tests/render-file.js
+    ```
 
 --------------------------------------------------------------------------------
 
 ## Project Structure
 
-• main.js  
+### main.js  
   – Contains all the core functions for formatting timelines (Markdown, HTML, PDF) and the chainable pipeline via allEvents().  
-• tests/  
+### tests/  
   – Example scripts to populate and read from a timeline, generating different outputs.  
-• package.json  
+### package.json  
   – Project configuration, including scripts and dependencies.  
-• commit.sh  
+### commit.sh  
   – Simple Git configuration script (optional).  
-• README.md  
+### README.md  
   – This file.
 
 --------------------------------------------------------------------------------
