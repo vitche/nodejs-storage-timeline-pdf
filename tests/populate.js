@@ -41,7 +41,7 @@ function addEventsToTimeline(events, timeLine, index) {
         console.log("The `./files/crypto-news/fallout` time-line was populated.");
         return;
     }
-    timeLine.add(events[index].value, function () {
+    timeLine.add(events[index].time, events[index].value, function () {
         addEventsToTimeline(events, timeLine, index + 1);
     });
 }

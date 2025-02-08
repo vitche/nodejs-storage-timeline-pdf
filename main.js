@@ -28,8 +28,23 @@ function gatherAllEvents(timeLine) {
 }
 
 /**
+ * Safely converts a timestamp (in ms) to a human-readable date/time string.
+ * If the provided time isn't a numeric timestamp, just return it as-is.
+ *
+ * @param {string} time - The original time (often in milliseconds)
+ * @returns {string} - The time as a human-readable date/time if numeric; otherwise unchanged
+ */
+function formatTime(time) {
+    const parsed = Number(time);
+    if (!isNaN(parsed)) {
+        return new Date(parsed).toLocaleString();
+    }
+    return time;
+}
+
+/**
  * Default formatter for events to Markdown. Converts each event into a small
- * Markdown section titled with the event's time.
+ * Markdown section titled with the event's parsed date (or original string).
  *
  * @param {Array<{ time: string, value: string }>} events - The array of events
  * @param {string} timelineName - The name of the timeline
@@ -38,13 +53,16 @@ function gatherAllEvents(timeLine) {
 function eventsToMarkdown(events, timelineName) {
     return `# ${timelineName}\n\n` +
         events
-            .map(({ time, value }) => `## Event at ${time}\n\n${value}\n`)
+            .map(({ time, value }) => {
+                const displayTime = formatTime(time);
+                return `## ${displayTime}\n\n${value}\n`;
+            })
             .join("\n---\n\n");
 }
 
 /**
  * Default formatter for events to HTML. Converts each event into a styled
- * HTML section with the event's time as a header.
+ * HTML section with the event's parsed date (or original string) as a header.
  *
  * @param {Array<{ time: string, value: string }>} events - The array of events
  * @param {string} timelineName - The name of the timeline
@@ -52,19 +70,22 @@ function eventsToMarkdown(events, timelineName) {
  */
 function eventsToHTML(events, timelineName) {
     const eventsSections = events
-        .map(({ time, value }) => `
-            <section class="event">
-                <h2>Event at ${time}</h2>
-                <div class="event-content">
-                    ${value}
-                </div>
-            </section>
-        `)
+        .map(({ time, value }) => {
+            const displayTime = formatTime(time);
+            return `
+                <section class="event">
+                    <h2>${displayTime}</h2>
+                    <div class="event-content">
+                        ${value}
+                    </div>
+                </section>
+            `;
+        })
         .join('\n<hr>\n');
 
     return `
         <!DOCTYPE html>
-        <html>
+        <html lang="utf-8">
         <head>
             <meta charset="UTF-8">
             <style>
@@ -97,6 +118,7 @@ function eventsToHTML(events, timelineName) {
                     margin: 2em 0;
                 }
             </style>
+            <title>${timelineName}</title>
         </head>
         <body>
             <h1>${timelineName}</h1>
@@ -118,7 +140,7 @@ async function htmlToPDF(html) {
         const page = await browser.newPage();
         await page.setContent(html);
 
-        const pdfBuffer = await page.pdf({
+        return await page.pdf({
             format: 'A4',
             margin: {
                 top: '2cm',
@@ -128,8 +150,6 @@ async function htmlToPDF(html) {
             },
             printBackground: true
         });
-
-        return pdfBuffer;
     } finally {
         await browser.close();
     }
@@ -165,7 +185,7 @@ export function allEvents(timeLine, timeLineName) {
     // Immediately start gathering all events.
     eventsPromise = gatherAllEvents(timeLine);
 
-    const pipeline = {
+    return {
         /**
          * Transforms the collected events into a single Markdown string using the
          * given formatter. If no formatter is specified, uses the default `eventsToMarkdown`.
@@ -237,6 +257,4 @@ export function allEvents(timeLine, timeLineName) {
             return eventsPromise;
         },
     };
-
-    return pipeline;
 }
