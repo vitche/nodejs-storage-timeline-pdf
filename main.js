@@ -50,7 +50,7 @@ function formatTime(time) {
  * @param {string} timelineName - The name of the timeline
  * @returns {string} - Combined Markdown content
  */
-function eventsToMarkdown(events, timelineName) {
+function defaultMarkdownFormatter(events, timelineName) {
     return `# ${timelineName}\n\n` +
         events
             .map(({ time, value }) => {
@@ -68,7 +68,7 @@ function eventsToMarkdown(events, timelineName) {
  * @param {string} timelineName - The name of the timeline
  * @returns {string} - Combined HTML content
  */
-function eventsToHTML(events, timelineName) {
+function defaultHTMLFormatter(events, timelineName) {
     const eventsSections = events
         .map(({ time, value }) => {
             const displayTime = formatTime(time);
@@ -190,7 +190,7 @@ export function allEvents(timeLine, timeLineName) {
          * Transforms the collected events into a single Markdown string using the
          * given formatter. If no formatter is specified, uses the default `eventsToMarkdown`.
          */
-        toMarkDown(formatter = eventsToMarkdown) {
+        toMarkDown(formatter = defaultMarkdownFormatter) {
             if (!markdownPromise) {
                 markdownPromise = eventsPromise.then((events) => formatter(events, timeLineName));
             }
@@ -201,7 +201,7 @@ export function allEvents(timeLine, timeLineName) {
          * Transforms the collected events into HTML using the given formatter.
          * If no formatter is specified, uses the default `eventsToHTML`.
          */
-        toHTML(formatter = eventsToHTML) {
+        toHTML(formatter = defaultHTMLFormatter) {
             if (!htmlPromise) {
                 htmlPromise = eventsPromise.then((events) => formatter(events, timeLineName));
             }
@@ -224,7 +224,7 @@ export function allEvents(timeLine, timeLineName) {
                     // Convert Markdown to HTML first
                     pdfBufferPromise = markdownPromise
                         .then((markdown) => {
-                            const html = eventsToHTML([{
+                            const html = defaultHTMLFormatter([{
                                 time: 'Markdown Content',
                                 value: markdown.replace(/\n/g, '<br>')
                             }], timeLineName);
