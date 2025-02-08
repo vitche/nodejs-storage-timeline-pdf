@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import {fileURLToPath} from "url";
-import {allEvents} from "../main.js";
+import {allEvents, buildJSONHTMLFormatter} from "../main.js";
 import StorageTimeline from "nodejs-storage-timeline";
 
 // Resolve __dirname in ECMAScript modules.
@@ -29,7 +29,7 @@ const pdfFilePath = path.join(
 );
 
 allEvents(timeLine, timeLineName)
-    .toHTML()   // Convert to Markdown first.
+    .toHTML(buildJSONHTMLFormatter(['uri', 'text']))   // Convert to Markdown first.
     .toPDF()        // Then produce a PDF from that Markdown.
     .toBuffer()     // Get the conversion result as a Buffer.
     .then((pdfBuffer) => {

@@ -156,6 +156,141 @@ async function htmlToPDF(html) {
 }
 
 /**
+ * A builder that returns a Markdown formatter for events whose .value is a JSON object.
+ * The builder accepts an array of fields to include from the JSON object. Each event
+ * will be rendered by listing only those JSON fields.
+ *
+ * Usage:
+ *   const customFormatter = buildJSONMarkdownFormatter(["title", "description"]);
+ *   allEvents(timeLine, "aTimeline").toMarkDown(customFormatter).toBuffer()...
+ *
+ * @param {Array<string>} fields - The list of keys to extract from the JSON object
+ * @returns {(events: Array<{ time: string, value: string }>, timelineName: string) => string}
+ */
+export function buildJSONMarkdownFormatter(fields) {
+    return (events, timelineName) => {
+        let output = `# ${timelineName}\n\n`;
+
+        output += events
+            .map(({ time, value }) => {
+                const displayTime = formatTime(time);
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(value);
+                } catch (e) {
+                    // If value isn't valid JSON, treat it as plain text
+                    jsonData = { raw: value };
+                }
+
+                // Build bullet points for each requested field
+                const contentLines = fields.map((field) => {
+                    const fieldVal = jsonData[field] !== undefined
+                        ? jsonData[field]
+                        : "";
+                    return `- ${field}: ${fieldVal}`;
+                }).join("\n");
+
+                return `## ${displayTime}\n\n${contentLines}\n`;
+            })
+            .join("\n---\n\n");
+
+        return output;
+    };
+}
+
+/**
+ * A builder that returns an HTML formatter for events whose .value is a JSON object.
+ * The builder accepts an array of fields to include from the JSON object. Each event
+ * will be rendered by listing only those JSON fields in a bullet list.
+ *
+ * Usage:
+ *   const customHTMLFormatter = buildJSONHTMLFormatter(["title", "description"]);
+ *   allEvents(timeLine, "aTimeline").toHTML(customHTMLFormatter).toBuffer()...
+ *
+ * @param {Array<string>} fields - The list of keys to extract from the JSON object
+ * @returns {(events: Array<{ time: string, value: string }>, timelineName: string) => string}
+ */
+export function buildJSONHTMLFormatter(fields) {
+    return (events, timelineName) => {
+        const eventSections = events
+            .map(({ time, value }) => {
+                const displayTime = formatTime(time);
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(value);
+                } catch (e) {
+                    // If value isn't valid JSON, treat it as plain text
+                    jsonData = { raw: value };
+                }
+
+                // Build bullet list for each requested field
+                const items = fields.map((field) => {
+                    const fieldVal = jsonData[field] !== undefined
+                        ? jsonData[field]
+                        : "";
+                    return `<li><strong>${field.toUpperCase()}:</strong> ${fieldVal}</li>`;
+                }).join("");
+
+                return `
+                    <section class="event">
+                        <h2>${displayTime}</h2>
+                        <ul class="event-fields">
+                            ${items}
+                        </ul>
+                    </section>
+                `;
+            })
+            .join('\n<hr>\n');
+
+        return `
+            <!DOCTYPE html>
+            <html lang="utf-8">
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        line-height: 1.6;
+                        margin: 2cm;
+                        color: #333;
+                    }
+                    h1 {
+                        color: #222;
+                        text-align: center;
+                        margin-bottom: 1.5em;
+                    }
+                    h2 {
+                        color: #333;
+                        border-bottom: 1px solid #eee;
+                        padding-bottom: 0.5em;
+                        margin-top: 1.5em;
+                    }
+                    .event {
+                        margin-bottom: 2em;
+                    }
+                    .event-fields {
+                        margin: 1em 0;
+                        list-style: disc;
+                        padding-left: 2em;
+                    }
+                    hr {
+                        border: none;
+                        border-top: 1px solid #eee;
+                        margin: 2em 0;
+                    }
+                </style>
+                <title>${timelineName}</title>
+            </head>
+            <body>
+                <h1>${timelineName}</h1>
+                ${eventSections}
+            </body>
+            </html>
+        `;
+    };
+}
+
+/**
  * Defines the carrying pipeline for timeline events. It provides the following chainable steps:
  *   - `.toMarkDown([formatter])` transforms raw events into Markdown
  *   - `.toHTML([formatter])` transforms raw events into HTML
@@ -188,7 +323,7 @@ export function allEvents(timeLine, timeLineName) {
     return {
         /**
          * Transforms the collected events into a single Markdown string using the
-         * given formatter. If no formatter is specified, uses the default `eventsToMarkdown`.
+         * given formatter. If no formatter is specified, uses the default `defaultMarkdownFormatter`.
          */
         toMarkDown(formatter = defaultMarkdownFormatter) {
             if (!markdownPromise) {
@@ -199,7 +334,7 @@ export function allEvents(timeLine, timeLineName) {
 
         /**
          * Transforms the collected events into HTML using the given formatter.
-         * If no formatter is specified, uses the default `eventsToHTML`.
+         * If no formatter is specified, uses the default `defaultHTMLFormatter`.
          */
         toHTML(formatter = defaultHTMLFormatter) {
             if (!htmlPromise) {
