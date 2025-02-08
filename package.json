@@ -11,8 +11,7 @@
   "license": "LGPL-3.0-or-later",
   "description": "The Storage.Timeline PDF formatter.",
   "dependencies": {
-    "markdown-pdf": "^11.0.0",
     "nodejs-storage-timeline": "github:vitche/nodejs-storage-timeline",
-    "phantomjs-prebuilt": "^2.1.16"
+    "puppeteer": "^24.2.0"
   }
 }
