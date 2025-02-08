@@ -11,8 +11,8 @@ const schema = storage.get(schemaName);
 const timeLine = schema.get(timeLineName);
 
 // Default or custom formatter can be used before .toPDF()
-allEvents(timeLine)
-    .toMarkDown()
+allEvents(timeLine, timeLineName)
+    .toHTML()
     .toPDF()
     .toBuffer()
     .then((pdfBuffer) => {

@@ -32,12 +32,14 @@ function gatherAllEvents(timeLine) {
  * Markdown section titled with the event's time.
  *
  * @param {Array<{ time: string, value: string }>} events - The array of events
+ * @param {string} timelineName - The name of the timeline
  * @returns {string} - Combined Markdown content
  */
-function eventsToMarkdown(events) {
-    return events
-        .map(({ time, value }) => `## Event at ${time}\n\n${value}\n`)
-        .join("\n---\n\n");
+function eventsToMarkdown(events, timelineName) {
+    return `# ${timelineName}\n\n` +
+        events
+            .map(({ time, value }) => `## Event at ${time}\n\n${value}\n`)
+            .join("\n---\n\n");
 }
 
 /**
@@ -45,9 +47,10 @@ function eventsToMarkdown(events) {
  * HTML section with the event's time as a header.
  *
  * @param {Array<{ time: string, value: string }>} events - The array of events
+ * @param {string} timelineName - The name of the timeline
  * @returns {string} - Combined HTML content
  */
-function eventsToHTML(events) {
+function eventsToHTML(events, timelineName) {
     const eventsSections = events
         .map(({ time, value }) => `
             <section class="event">
@@ -71,6 +74,11 @@ function eventsToHTML(events) {
                     margin: 2cm;
                     color: #333;
                 }
+                h1 {
+                    color: #222;
+                    text-align: center;
+                    margin-bottom: 1.5em;
+                }
                 h2 {
                     color: #333;
                     border-bottom: 1px solid #eee;
@@ -91,6 +99,7 @@ function eventsToHTML(events) {
             </style>
         </head>
         <body>
+            <h1>${timelineName}</h1>
             ${eventsSections}
         </body>
         </html>
@@ -143,10 +152,11 @@ async function htmlToPDF(html) {
  * If `.toBuffer()` is called without transformations, the raw events are returned as an array.
  *
  * @param {TimeLine} timeLine - An instance from nodejs-storage-timeline
+ * @param {string} timeLineName
  * @returns {{toMarkDown: Function, toHTML: Function, toPDF: Function, toBuffer: Function}}
  *          A chainable pipeline object
  */
-export function allEvents(timeLine) {
+export function allEvents(timeLine, timeLineName) {
     let eventsPromise = null;    // -> Promise<Array<{ time: string, value: string }>>
     let markdownPromise = null;  // -> Promise<string>
     let htmlPromise = null;      // -> Promise<string>
@@ -162,7 +172,7 @@ export function allEvents(timeLine) {
          */
         toMarkDown(formatter = eventsToMarkdown) {
             if (!markdownPromise) {
-                markdownPromise = eventsPromise.then((events) => formatter(events));
+                markdownPromise = eventsPromise.then((events) => formatter(events, timeLineName));
             }
             return this;
         },
@@ -173,7 +183,7 @@ export function allEvents(timeLine) {
          */
         toHTML(formatter = eventsToHTML) {
             if (!htmlPromise) {
-                htmlPromise = eventsPromise.then((events) => formatter(events));
+                htmlPromise = eventsPromise.then((events) => formatter(events, timeLineName));
             }
             return this;
         },
@@ -197,7 +207,7 @@ export function allEvents(timeLine) {
                             const html = eventsToHTML([{
                                 time: 'Markdown Content',
                                 value: markdown.replace(/\n/g, '<br>')
-                            }]);
+                            }], timeLineName);
                             return htmlToPDF(html);
                         });
                 }

@@ -28,8 +28,8 @@ const pdfFilePath = path.join(
     timeLineName + ".pdf"
 );
 
-allEvents(timeLine)
-    .toMarkDown()   // Convert to Markdown first.
+allEvents(timeLine, timeLineName)
+    .toHTML()   // Convert to Markdown first.
     .toPDF()        // Then produce a PDF from that Markdown.
     .toBuffer()     // Get the conversion result as a Buffer.
     .then((pdfBuffer) => {
